@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Placeholder Replaced</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --accent: #0ea5a4;
+      --accent-hover: #0d9488;
+      --muted: #64748b;
+      --muted-light: #94a3b8;
+      --border: #e2e8f0;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      --radius: 12px;
+      --transition: all 0.2s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: #1e293b;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 30px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .accent {
+      color: var(--accent);
+    }
+
+    .lead {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .canvas-area {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      transition: var(--transition);
+    }
+
+    canvas:hover {
+      border-color: var(--accent);
+    }
+
+    .note {
+      font-size: 14px;
+      color: var(--muted);
+      padding: 12px 16px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    .note strong {
+      color: #475569;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .file-drop {
+      border: 2px dashed var(--border);
+      padding: 30px 20px;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      background: #f8fafc;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .file-drop:hover {
+      border-color: var(--accent);
+      background: #f0f9ff;
+    }
+
+    .file-drop.active {
+      border-color: var(--accent);
+      background: #f0f9ff;
+    }
+
+    .file-drop-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+      color: var(--muted-light);
+    }
+
+    .file-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .small {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #334155;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .option-item:hover {
+      background: #f1f5f9;
+      border-color: var(--muted-light);
+    }
+
+    .option-item.active {
+      background: #f0f9ff;
+      border-color: var(--accent);
+    }
+
+    .option-item input {
+      margin: 0;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    button {
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+      font-size: 14px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+      border: none;
+    }
+
+    .primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+    }
+
+    .secondary {
+      background: white;
+      color: #475569;
+      border: 1px solid var(--border);
+    }
+
+    .secondary:hover:not(:disabled) {
+      background: #f8fafc;
+      border-color: var(--muted-light);
+    }
+
+    .status {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .status.success {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+      display: block;
+    }
+
+    .status.error {
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      display: block;
+    }
+
+    .status.info {
+      background: #eff6ff;
+      color: #1e40af;
+      border: 1px solid #dbeafe;
+      display: block;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      width: 220px;
+      background-color: #1e293b;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px 12px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 13px;
+      font-weight: normal;
+    }
+
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 16px;
+      }
+      
+      .card {
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 24px;
+      }
+      
+      .actions {
+        flex-direction: column;
+      }
+      
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card canvas-area">
+      <div>
+        <h1><span class="accent">Placeholder</span> Replaced</h1>
+        <p class="lead">Загрузите изображение — оно автоматически вставится в отмеченные места диаграммы. Затем можно скачать результат.</p>
+      </div>
+
+      <canvas id="mainCanvas" width="1080" height="1241"></canvas>
+      
+    </div>
+
+    <div class="card controls">
+      <div class="file-drop" id="dropArea">
+        <div class="file-drop-icon">📁</div>
+        <div id="dropText">
+          Перетащите изображение сюда или нажмите для выбора<br>
+          <span class="small">Поддерживается JPG, PNG, WebP</span>
+        </div>
+        <input id="fileInput" class="file-input" type="file" accept="image/*" />
+      </div>
+
+      <div id="statusArea"></div>
+
+      <div>
+        <div class="section-title">Режим вставки</div>
+        <div class="options">
+          <label class="option-item" id="topOption">
+            <input type="checkbox" id="topBox" checked />
+            <span>Верхний placeholder</span>
+          </label>
+          <label class="option-item" id="midOption">
+            <input type="checkbox" id="midBox" checked />
+            <span>Средний placeholder</span>
+          </label>
+          <label class="option-item" id="bothOption">
+            <input type="checkbox" id="bothBox" />
+            <span>Поставить одинаково в оба</span>
+          </label>
+            <select id="mode" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); background:#f8fafc;">
+            <option value="cover">Заполнить (cover)</option>
+            <option value="contain">Уместить (contain)</option>
+            <option value="center">По центру (center)</option>
+            <option value="rotate">Повернуть (90°)</option>
+            </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="renderBtn">
+          <span>🔄</span>
+          Вставить/Обновить
+        </button>
+        <button class="secondary" id="downloadBtn">
+          <span>💾</span>
+          Скачать PNG
+        </button>
+      </div>
+
+      <div class="note">
+        <strong>Совет:</strong> Если фон называется иначе — откройте HTML и вверху скрипта поправьте переменную <code>BACKGROUND_SRC</code>.
+      </div>
+    </div>
+  </div>
+
+<script>
+const BACKGROUND_SRC = "BACKGROUND.jpg";
+
+// Нормированные placeholder'ы
+const PLACEHOLDERS_NORM = [
+  [0.7083333333333334, 0.07413376309427881, 0.9555555555555556, 0.19580983078162773],
+  [0.17685185185185184, 0.30781627719580984, 0.3611111111111111, 0.3996776792908944]
+];
+
+const canvas = document.getElementById("mainCanvas");
+const ctx = canvas.getContext("2d");
+const fileInput = document.getElementById("fileInput");
+const dropArea = document.getElementById("dropArea");
+const statusArea = document.getElementById("statusArea");
+
+let userImage = null;
+let processedImage = null; // итог после обрезки
+let bgImage = new Image();
+
+function showStatus(msg, type="info", hold=false){
+  statusArea.textContent = msg;
+  statusArea.className = `status ${type}`;
+  if(!hold) setTimeout(()=> statusArea.className="status", 2500);
+}
+
+// ---------------- ФОН ----------------
+function loadBackground(){
+  bgImage.onload = () => {
+    canvas.width = bgImage.naturalWidth;
+    canvas.height = bgImage.naturalHeight;
+    drawAll();
+    showStatus("Фон загружен","success");
+  };
+  bgImage.onerror = () => showStatus("Фон не найден","error",true);
+  bgImage.crossOrigin = "anonymous";
+  bgImage.src = BACKGROUND_SRC;
+}
+
+// ---------------- ВЫРЕЗКА БЕЛЫХ ПОЛЕЙ ----------------
+function autoCropWhite(img){
+  const c = document.createElement("canvas");
+  const cx = c.getContext("2d");
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  cx.drawImage(img,0,0);
+
+  const data = cx.getImageData(0,0,c.width,c.height).data;
+  let minX = c.width, minY = c.height, maxX = 0, maxY = 0;
+
+  for(let y=0; y<c.height; y++){
+    for(let x=0; x<c.width; x++){
+      const i = (y*c.width + x)*4;
+      const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
+
+      // пиксель считается "не белым", если он заметно отличается от белого
+      if(a>20 && !(r>240 && g>240 && b>240)){
+        if(x<minX) minX=x;
+        if(y<minY) minY=y;
+        if(x>maxX) maxX=x;
+        if(y>maxY) maxY=y;
+      }
+    }
+  }
+
+  const w = maxX - minX + 1;
+  const h = maxY - minY + 1;
+
+  const out = document.createElement("canvas");
+  out.width = w>0 ? w : img.naturalWidth;
+  out.height = h>0 ? h : img.naturalHeight;
+  out.getContext("2d").drawImage(img, minX, minY, out.width, out.height, 0,0,out.width,out.height);
+  return out;
+}
+
+// ---------------- РЕНДЕР ----------------
+function drawAll(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(bgImage,0,0,canvas.width,canvas.height);
+
+  if(!processedImage) return;
+
+  const mode = document.getElementById("mode")?.value || "cover";
+  const useTop = document.getElementById("topBox").checked;
+  const useMid = document.getElementById("midBox").checked;
+  const both = document.getElementById("bothBox").checked;
+
+  const targets = both ? PLACEHOLDERS_NORM :
+    [
+      ...(useTop ? [PLACEHOLDERS_NORM[0]] : []),
+      ...(useMid ? [PLACEHOLDERS_NORM[1]] : [])
+    ];
+
+  targets.forEach(norm=>{
+    const x = norm[0]*canvas.width;
+    const y = norm[1]*canvas.height;
+    const w = (norm[2]-norm[0])*canvas.width;
+    const h = (norm[3]-norm[1])*canvas.height;
+    drawMode(processedImage, x,y,w,h, mode);
+  });
+
+  showStatus("Готово!","success");
+}
+
+function drawMode(img, x,y,w,h, mode){
+  const iw = img.width, ih = img.height;
+
+  if(mode==="center"){
+    const dx = x + (w - iw)/2;
+    const dy = y + (h - ih)/2;
+    ctx.drawImage(img, dx, dy);
+    return;
+  }
+
+  if(mode==="contain" || mode==="cover"){
+    const scale = mode==="cover" ? Math.max(w/iw, h/ih) : Math.min(w/iw, h/ih);
+    const sw = iw * scale, sh = ih * scale;
+    const dx = x + (w - sw)/2;
+    const dy = y + (h - sh)/2;
+    ctx.drawImage(img, dx, dy, sw, sh);
+    return;
+  }
+
+  if(mode==="rotate"){
+    ctx.save();
+    ctx.translate(x + w/2, y + h/2);
+    ctx.rotate(Math.PI/2);
+    const scale = Math.min(w/ih, h/iw);
+    ctx.drawImage(img, - (iw*scale)/2, - (ih*scale)/2, iw*scale, ih*scale);
+    ctx.restore();
+  }
+}
+
+// ---------------- ЗАГРУЗКА ИЗОБРАЖЕНИЯ ----------------
+function handleFile(file){
+  if(!file || !file.type.startsWith("image/"))
+    return showStatus("Файл должен быть изображением","error");
+
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    userImage = img;
+    processedImage = autoCropWhite(userImage);
+    drawAll();
+    URL.revokeObjectURL(url);
+    dropArea.classList.add("active");
+    dropArea.querySelector("#dropText").innerHTML = `<strong>${file.name}</strong>`;
+  };
+  img.src = url;
+}
+
+// ---------------- СОБЫТИЯ ----------------
+dropArea.onclick = ()=> fileInput.click();
+dropArea.ondragover = e => (e.preventDefault(), dropArea.classList.add("active"));
+dropArea.ondragleave = ()=> dropArea.classList.remove("active");
+dropArea.ondrop = e => { e.preventDefault(); dropArea.classList.remove("active"); handleFile(e.dataTransfer.files[0]); };
+
+fileInput.onchange = ()=> handleFile(fileInput.files[0]);
+document.getElementById("renderBtn").onclick = drawAll;
+
+document.getElementById("downloadBtn").onclick = () => {
+  if(!processedImage) return showStatus("Добавьте изображение","error");
+  canvas.toBlob(blob=>{
+    const a = document.createElement("a");
+    a.download="result.png";
+    a.href=URL.createObjectURL(blob);
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+};
+
+loadBackground();
+</script>
+
+</body>
+</html>
