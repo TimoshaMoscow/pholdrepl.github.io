@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -317,7 +319,7 @@
       }
       
       h1 {
-        font-size: 24px;
+        fontSize: 24px;
       }
       
       .actions {
@@ -386,6 +388,10 @@
         <button class="secondary" id="downloadBtn">
           <span>💾</span>
           Скачать PNG
+        </button>
+        <button class="secondary" id="downloadAllBtn">
+          <span>📦</span>
+          Скачать все варианты
         </button>
       </div>
 
@@ -527,6 +533,179 @@ function drawMode(img, x,y,w,h, mode){
   }
 }
 
+// ---------------- СОЗДАНИЕ ВСЕХ ВАРИАНТОВ ----------------
+function generateAllVariants() {
+  if (!processedImage) {
+    showStatus("Сначала загрузите изображение", "error");
+    return null;
+  }
+
+  const modes = ["cover", "contain", "center", "rotate"];
+  const placements = ["top", "mid", "both"];
+  
+  const variants = [];
+  
+  // Создаем временный canvas для генерации вариантов
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height;
+  const tempCtx = tempCanvas.getContext("2d");
+  
+  // Генерируем все комбинации
+  placements.forEach(placement => {
+    modes.forEach(mode => {
+      // Очищаем canvas
+      tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+      tempCtx.drawImage(bgImage, 0, 0, tempCanvas.width, tempCanvas.height);
+      
+      // Определяем целевые placeholder'ы
+      let targets = [];
+      if (placement === "top") {
+        targets = [PLACEHOLDERS_NORM[0]];
+      } else if (placement === "mid") {
+        targets = [PLACEHOLDERS_NORM[1]];
+      } else if (placement === "both") {
+        targets = PLACEHOLDERS_NORM;
+      }
+      
+      // Рисуем изображение в placeholder'ы
+      targets.forEach(norm => {
+        const x = norm[0] * tempCanvas.width;
+        const y = norm[1] * tempCanvas.height;
+        const w = (norm[2] - norm[0]) * tempCanvas.width;
+        const h = (norm[3] - norm[1]) * tempCanvas.height;
+        
+        const iw = processedImage.width, ih = processedImage.height;
+        
+        if (mode === "center") {
+          const dx = x + (w - iw) / 2;
+          const dy = y + (h - ih) / 2;
+          tempCtx.drawImage(processedImage, dx, dy);
+        } else if (mode === "contain" || mode === "cover") {
+          const scale = mode === "cover" ? Math.max(w / iw, h / ih) : Math.min(w / iw, h / ih);
+          const sw = iw * scale, sh = ih * scale;
+          const dx = x + (w - sw) / 2;
+          const dy = y + (h - sh) / 2;
+          tempCtx.drawImage(processedImage, dx, dy, sw, sh);
+        } else if (mode === "rotate") {
+          tempCtx.save();
+          tempCtx.translate(x + w / 2, y + h / 2);
+          tempCtx.rotate(Math.PI / 2);
+          const scale = Math.min(w / ih, h / iw);
+          tempCtx.drawImage(processedImage, - (iw * scale) / 2, - (ih * scale) / 2, iw * scale, ih * scale);
+          tempCtx.restore();
+        }
+      });
+      
+      // Сохраняем вариант
+      const fileName = `${placement}_${mode}.png`;
+      tempCanvas.toBlob(blob => {
+        variants.push({
+          name: fileName,
+          blob: blob
+        });
+      });
+    });
+  });
+  
+  return variants;
+}
+
+// ---------------- СОЗДАНИЕ И СКАЧИВАНИЕ АРХИВА ----------------
+async function downloadAllVariants() {
+  if (!processedImage) {
+    showStatus("Сначала загрузите изображение", "error");
+    return;
+  }
+  
+  showStatus("Создание архива...", "info", true);
+  
+  try {
+    // Создаем ZIP архив
+    const zip = new JSZip();
+    
+    // Генерируем все варианты
+    const modes = ["cover", "contain", "center", "rotate"];
+    const placements = ["top", "mid", "both"];
+    
+    // Создаем временный canvas для генерации вариантов
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext("2d");
+    
+    // Счетчик для отслеживания завершения генерации
+    let completed = 0;
+    const total = placements.length * modes.length;
+    
+    // Генерируем все комбинации
+    for (const placement of placements) {
+      for (const mode of modes) {
+        // Очищаем canvas
+        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.drawImage(bgImage, 0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // Определяем целевые placeholder'ы
+        let targets = [];
+        if (placement === "top") {
+          targets = [PLACEHOLDERS_NORM[0]];
+        } else if (placement === "mid") {
+          targets = [PLACEHOLDERS_NORM[1]];
+        } else if (placement === "both") {
+          targets = PLACEHOLDERS_NORM;
+        }
+        
+        // Рисуем изображение в placeholder'ы
+        targets.forEach(norm => {
+          const x = norm[0] * tempCanvas.width;
+          const y = norm[1] * tempCanvas.height;
+          const w = (norm[2] - norm[0]) * tempCanvas.width;
+          const h = (norm[3] - norm[1]) * tempCanvas.height;
+          
+          const iw = processedImage.width, ih = processedImage.height;
+          
+          if (mode === "center") {
+            const dx = x + (w - iw) / 2;
+            const dy = y + (h - ih) / 2;
+            tempCtx.drawImage(processedImage, dx, dy);
+          } else if (mode === "contain" || mode === "cover") {
+            const scale = mode === "cover" ? Math.max(w / iw, h / ih) : Math.min(w / iw, h / ih);
+            const sw = iw * scale, sh = ih * scale;
+            const dx = x + (w - sw) / 2;
+            const dy = y + (h - sh) / 2;
+            tempCtx.drawImage(processedImage, dx, dy, sw, sh);
+          } else if (mode === "rotate") {
+            tempCtx.save();
+            tempCtx.translate(x + w / 2, y + h / 2);
+            tempCtx.rotate(Math.PI / 2);
+            const scale = Math.min(w / ih, h / iw);
+            tempCtx.drawImage(processedImage, - (iw * scale) / 2, - (ih * scale) / 2, iw * scale, ih * scale);
+            tempCtx.restore();
+          }
+        });
+        
+        // Сохраняем вариант в архив
+        const fileName = `${placement}_${mode}.png`;
+        tempCanvas.toBlob(blob => {
+          zip.file(fileName, blob);
+          completed++;
+          
+          // Когда все варианты готовы, создаем архив
+          if (completed === total) {
+            zip.generateAsync({type: "blob"}).then(content => {
+              saveAs(content, "all_variants.zip");
+              showStatus("Архив создан и скачан!", "success");
+            });
+          }
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Ошибка при создании архива:", error);
+    showStatus("Ошибка при создании архива", "error");
+  }
+}
+
 // ---------------- ЗАГРУЗКА ИЗОБРАЖЕНИЯ ----------------
 function handleFile(file){
   if(!file || !file.type.startsWith("image/"))
@@ -565,6 +744,8 @@ document.getElementById("downloadBtn").onclick = () => {
     URL.revokeObjectURL(a.href);
   });
 };
+
+document.getElementById("downloadAllBtn").onclick = downloadAllVariants;
 
 loadBackground();
 </script>
